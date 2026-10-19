@@ -1,69 +1,176 @@
-<!-- tracks: README.md @ sha256:6c35e964fc575f2d -->
+<!-- tracks: README.md @ sha256:32309b126f058101 -->
+# Jumper — 三个动作与奶龙皮肤
 
-![跳跳](docs/media/jumper-hero-zh.png)
+本仓库收录了在 **Jumper** 22 自由度螃蟹机器人上训练的强化学习动作，以及演示中
+使用的奶龙主题外观，共三个：
 
-# 跳跳
+- **你很臭啊** — 四条腿站立，身体左右摇摆，同时挥动右爪。
+- **奶龙捧腹大笑** — 循环播放的俯仰舞。
+- **小亮给他们整个活** — 360° 后空翻。
 
-[English](README.md) | **简体中文**
+三个权重都可以直接换上奶龙皮肤回放。动作运行在仿真中，用的是训练时同一套
+mjlab / MuJoCo Warp 栈。
 
-**跳跳是一台 22 自由度螃蟹机器人。** [查看硬件 →](docs/HARDWARE.zh.md)
+本仓库基于 [KingKong Robotics](https://github.com/KingKongRobotics/jumper) 的
+**Jumper AI 工具链**（Apache-2.0）：训练框架、任务结构和 `tasks/` 下的其他示例
+任务都来自那个项目；三个动作、对应的权重和奶龙皮肤是在这里训练并打包的。
 
-本仓库是跳跳的外观、动作与场景创作 AI 工具集。在 AI 编程助手中打开本仓库，试试下面的提示词。
+## 三个动作
 
-> 🦀 **免费获得跳跳！** [了解如何领取 →](https://beunlimited.me/zh/events/crab-robot-challenge-2026)
+| 中文名 | 英文名 | 任务 id | 权重 | 动作内容 |
+|---|---|---|---|---|
+| 你很臭啊 | You Stink! | `jumper.dance_sway` | `release/checkpoints/you_stink_model_17649.pt` | 四条腿站立，身体按 2 秒一个周期的近方波左右平移，同时右爪以 4 倍频率挥动。 |
+| 奶龙捧腹大笑 | Nailong's Belly Laugh | `jumper.dance_pitch` | `release/checkpoints/nailong_belly_laugh_model_23648.pt` | 9 秒循环的俯仰舞：身体在 20°、−10°、5° 之间点头再回到 20°，双肩以 0.5 秒周期摆动。 |
+| 小亮给他们整个活 | Xiaoliang Shows Them a Trick | `jumper.backflip` | `release/checkpoints/xiaoliang_big_move_model_9297.pt` | 360° 后空翻：下蹲、起跳到约 0.30 m、完整后仰一圈、脚先落地。 |
 
-## 一句话，设计外观
+`dance_sway` 在默认模型上训练；`dance_pitch` 和 `backflip` 在红色外壳模型
+（`assets/jumper/jumper_red.xml`）上训练。红模与默认的 `jumper.xml` 物理完全
+一致——相同的 body、joint、限位、质量和惯量，顺序也相同——所以三个权重都可以
+直接在奶龙皮肤上回放，不需要任何转换。
 
-> 为跳跳设计一个暖沙色游侠外观，统一身体和四肢配色，并导出 `.skin`。
+## 快速开始
 
-| | | |
-|:-:|:-:|:-:|
-| ![暖沙色游侠外观](docs/media/design-warm-sand.png) | ![银色装甲外观](docs/media/design-silver-armor.png) | ![Raphael Turtle 外观](docs/media/design-raphael.png) |
-| [**暖沙色游侠**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/warm-sand-ranger-integrated-v2.skin) | [**银色装甲**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/mecha-tripo-v3.skin) | [**Raphael Turtle**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/raphael-turtle-v1.skin) |
+### 环境要求
 
-[浏览全部外观](https://github.com/KingKongRobotics/jumper-design/tree/main/library/skins)
+- Linux，Python 3.10–3.13。
+- 推荐 NVIDIA 显卡。训练和回放通过 `mjlab` 使用
+  [MuJoCo Warp](https://github.com/google-deepmind/mujoco_warp)；`native`
+  后端可以用 CPU 运行。
+- 仓库自带的安装指南见 `docs/AGENT_SETUP.md`。
 
-## 一句话，训练动作
+### 安装
 
-> 为跳跳训练稳定的三足步态，回放并评估效果，然后打包生成 `.app` 动作包。
+```bash
+git clone https://github.com/littshar/jumper_RL.git
+cd jumper_RL
+python -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
 
-| | | |
-|:-:|:-:|:-:|
-| ![跳跳行走](docs/media/walk.gif) | ![跳跳改变姿态](docs/media/posture.gif) | ![跳跳挥手](docs/media/gesture.gif) |
-| **行走** | **姿态** | **手势** |
-| ![舞蹈仿真](docs/media/dance.gif)<br>![舞蹈官网展示](docs/media/official-dance.gif) | ![跳跃仿真](docs/media/jump.gif)<br>![跳跃官网展示](docs/media/official-jump.gif) | ![抓取仿真](docs/media/claw.gif)<br>![抓取官网展示](docs/media/official-grasp.gif) |
-| **舞蹈** | **跳跃** | **抓取** |
+必须执行 `pip install -e .`：vendored 的 `mjlab` 和 `rsl_rl` 位于 `rl/` 下，
+否则不在 `sys.path` 中。
 
-## 一句话，生成场景
+### 回放动作
 
-> 为跳跳生成一个有起伏地形、树木和长椅的公园泵道场景，并导出 `.map`。
+```bash
+# 你很臭啊
+.venv/bin/python scripts/play.py --task jumper.dance_sway \
+    --checkpoint release/checkpoints/you_stink_model_17649.pt
 
-| | | |
-|:-:|:-:|:-:|
-| ![公园泵道场景](docs/media/design-park.png) | ![卧室场景](docs/media/design-bedroom.png) | ![足球场景](docs/media/design-soccer.png) |
-| [**公园泵道**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/park-pump-track.map) | [**卧室**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/bedroom.map) | [**足球**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/soccer.map) |
+# 奶龙捧腹大笑
+.venv/bin/python scripts/play.py --task jumper.dance_pitch \
+    --checkpoint release/checkpoints/nailong_belly_laugh_model_23648.pt
 
-[浏览全部场景](https://github.com/KingKongRobotics/jumper-design/tree/main/library/maps)
+# 小亮给他们整个活
+.venv/bin/python scripts/play.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt
+```
 
-## 相关项目与指南
+这里不传 `--model`，因此使用默认的 `assets/jumper/jumper.xml`。如果已经装好
+奶龙皮肤（见下文），看到的就是奶龙外观。
 
-| 资源 | 用途 |
-|---|---|
-| [jumper-design](https://github.com/KingKongRobotics/jumper-design) | 外观与场景生成；AI 读取其[工作说明](https://github.com/KingKongRobotics/jumper-design/blob/main/AGENTS.md)，按需使用工具。 |
-| [训练教程](docs/TUTORIAL.zh.md) | 本仓库中的动作训练、回放与策略导出。 |
-| [Colab 训练](docs/COLAB.zh.md) | 在 Notebook 中使用 GPU 训练、备份与恢复检查点、导出 ONNX 并录制仿真 MP4。 |
-| [动作包格式](deploy/BUNDLE.md) | 将训练好的动作及控制器打包为 `.app`；环境要求见[构建指南](deploy/README.md)。 |
-| [项目指南](docs/PROJECT_GUIDE.zh.md) | 环境安装、当前能力和更多文档。 |
+如果要无窗口录制视频而不是打开 viewer：
 
-训练基于 [mjlab](https://github.com/mujocolab/mjlab)、
-[rsl_rl](https://github.com/leggedrobotics/rsl_rl)、[MuJoCo](https://github.com/google-deepmind/mujoco)
-和 [MuJoCo Warp](https://github.com/google-deepmind/mujoco_warp)。
-外观与场景示例图片来自 jumper-design，出处见[图片来源](docs/media/DESIGN_SOURCES.md)，
-第三方材料归属见 [NOTICE](NOTICE)。
+```bash
+.venv/bin/python scripts/play.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt \
+    --headless --steps 650 --video backflip.mp4 --video-fps 50
+```
 
-## 许可证
+任务控制频率为 200 Hz，`--steps 650` 覆盖一个 3 秒 episode。后空翻 episode
+会在第 600 步自行结束，因此也可以用 `--stop-on-done`。
 
-Copyright 2026 KingKong Robotics.
+## 奶龙皮肤
 
-维护者拥有权利的项目内容采用 Apache-2.0。详见 [LICENSE](LICENSE)、[NOTICE](NOTICE)
-和[许可说明](docs/PROJECT_GUIDE.zh.md#许可证)。第三方内容保留其各自的许可条款；使用本工具生成的文件不会自动继承本仓库许可证。
+皮肤只改外观，碰撞几何和动力学不变，所以策略表现与红色训练模型完全一致。
+
+文件在 `release/nailong_skin/`：
+
+- `jumper.xml` — 完整模型文件，包含奶龙配色和带贴图的上壳。
+- `upper_shell_link.obj`、`.mtl`、`_basecolor.png` — 带贴图的外壳网格。
+- XML 仍通过 `meshes/upper_shell_link_col.STL` 做碰撞，该文件仓库中已有。
+
+安装方式（先备份原模型，再替换并复制外壳）：
+
+```bash
+cp assets/jumper/jumper.xml assets/jumper/jumper.xml.orig
+cp release/nailong_skin/jumper.xml assets/jumper/jumper.xml
+cp release/nailong_skin/upper_shell_link.obj \
+   release/nailong_skin/upper_shell_link.mtl \
+   release/nailong_skin/upper_shell_link_basecolor.png \
+   assets/jumper/urdf/jumper/meshes/visual/
+```
+
+如果想改回训练时用的红色外壳回放，传 `--model jumper_red`。
+
+## 训练（可选）
+
+这些权重是继续训练得到的；以下命令对应当时的设置。
+
+```bash
+# 你很臭啊 — 参数化摇摆舞，2048 个环境
+.venv/bin/python scripts/train.py --task jumper.dance_sway \
+    --num_envs 2048 --headless
+
+# 奶龙捧腹大笑 — 从摇摆舞热启动，2048 个环境。
+# 取最新的摇摆舞 checkpoint；如果 logs/ 是空的，先训练摇摆舞。
+SWAY=$(ls -t logs/jumper/jumper.dance_sway/*/model_*.pt | head -1)
+.venv/bin/python scripts/train.py --task jumper.dance_pitch \
+    --model jumper_red --checkpoint "$SWAY" --num_envs 2048 --headless
+
+# 小亮给他们整个活 — 8 GB 笔记本显卡上使用 512 个环境
+.venv/bin/python scripts/train.py --task jumper.backflip \
+    --model jumper_red \
+    --checkpoint tasks/jumper/ref_free_jump/out/example/model_5999.pt \
+    --num_envs 512 --headless
+```
+
+`--max-iterations` 的含义是**本次运行执行多少轮**，所以在续训时它表示在
+checkpoint 基础上再跑多少轮。
+
+训练期间 TensorBoard 会服务 `logs/<model>/<task>/`，地址是
+<http://localhost:6006/>。
+
+## 仓库结构
+
+```
+release/checkpoints/       三个策略权重
+release/nailong_skin/      奶龙外观文件
+release/SHA256SUMS         上述文件的校验和
+tasks/jumper/dance_sway/   摇摆舞任务
+tasks/jumper/dance_pitch/  俯仰舞任务
+tasks/jumper/backflip/     后空翻任务
+assets/jumper/             机器人模型、网格和红色训练模型
+scripts/                   train.py、play.py、export.py、deploy.py
+docs/                      工具链文档
+```
+
+其余内容——`controller/`、`deploy/`、`scenes/` 以及 `tasks/` 下的其他任务——
+属于 Jumper 工具链，见[上游项目](https://github.com/KingKongRobotics/jumper)
+和 `docs/`。
+
+## 导出与部署
+
+策略权重是 PyTorch 全状态文件。要生成用于部署的 ONNX：
+
+```bash
+.venv/bin/python scripts/export.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt
+```
+
+控制器与 bundle 流程见 `deploy/README.md`。
+
+## 已知限制
+
+- **后空翻落地。** 训练后的策略平均大约用三只脚着地（共六只），落地后不会
+  回到 HOME 姿态；episode 在起跳三秒后超时结束。它是一次可靠的后空翻，
+  不是连续杂技。
+- **舞蹈是参数化的。** 它们不是动作捕捉片段，而是跟踪任务内置的周期参考。
+  只要策略在运行，动作就会持续循环。
+- **仅限仿真验证。** 权重在 `mjlab` / MuJoCo 中验证过。上实机还需要伺服
+  模型、控制器 manifest 和硬件标定，见 `deploy/README.md`。
+
+## 许可证与归属
+
+仓库使用 Apache License 2.0，见 `LICENSE` 和 `NOTICE`。Jumper 及工具链的
+版权归 KingKong Robotics（2026）。第三方组件及其许可证列在 `NOTICE` 中。

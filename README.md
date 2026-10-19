@@ -1,69 +1,192 @@
-![Jumper](docs/media/jumper-hero-en.png)
+# Jumper — Three Motions with a Nailong Skin
 
-# Jumper
+This repository packages three reinforcement-learning motions trained on the
+**Jumper** 22-DoF crab robot, together with the Nailong-themed appearance used
+in the demonstrations:
 
-**English** | [简体中文](README.zh.md)
+- **你很臭啊 / You Stink!** — a side-to-side sway dance on four legs with a
+  waving claw.
+- **奶龙捧腹大笑 / Nailong's Belly Laugh** — a looping pitch dance.
+- **小亮给他们整个活 / Xiaoliang Shows Them a Trick** — a 360° backward flip.
 
-**Jumper is a 22-DoF crab robot.** [View hardware →](docs/HARDWARE.md)
+All three checkpoints replay out of the box on the Nailong skin. The motions
+run in simulation with the same mjlab / MuJoCo Warp stack used for training.
 
-This repo is Jumper’s AI toolkit for appearance, motion, and scene creation. Open this repo in an AI coding assistant and try the prompts below.
+The repository is built on the **Jumper AI toolkit** from
+[KingKong Robotics](https://github.com/KingKongRobotics/jumper) (Apache-2.0):
+the training framework, the task structure and the other example tasks under
+`tasks/` come from that project. The three motions, their checkpoints and the
+Nailong skin were trained and packaged here.
 
-> 🦀 **Get a free Jumper!** [Find out how →](https://beunlimited.me/zh/events/crab-robot-challenge-2026)
+## The three motions
 
-## One sentence to design an appearance
+| Chinese title | English title | Task id | Checkpoint | Motion |
+|---|---|---|---|---|
+| 你很臭啊 | You Stink! | `jumper.dance_sway` | `release/checkpoints/you_stink_model_17649.pt` | Standing on four legs, the body sways side-to-side on a 2-second near-square rhythm while the right claw waves at four times the sway frequency. |
+| 奶龙捧腹大笑 | Nailong's Belly Laugh | `jumper.dance_pitch` | `release/checkpoints/nailong_belly_laugh_model_23648.pt` | A 9-second looping pitch dance: the body nods between 20°, −10°, 5° and back to 20°, with both shoulders swinging at a 0.5-second period. |
+| 小亮给他们整个活 | Xiaoliang Shows Them a Trick | `jumper.backflip` | `release/checkpoints/xiaoliang_big_move_model_9297.pt` | A 360° backward flip: crouch, jump to about 0.30 m, one full backward rotation, feet-first landing. |
 
-> Design a warm sand ranger appearance for Jumper with coordinated body and limb colors, then export a `.skin`.
+`dance_sway` was trained on the default model. `dance_pitch` and `backflip`
+were trained on the red-shell model (`assets/jumper/jumper_red.xml`), which is
+physics-identical to the default `jumper.xml` — same bodies, joints, ranges,
+masses and inertias in the same order — so all three checkpoints replay on the
+Nailong skin without any conversion.
 
-| | | |
-|:-:|:-:|:-:|
-| ![Warm sand ranger appearance](docs/media/design-warm-sand.png) | ![Silver armor appearance](docs/media/design-silver-armor.png) | ![Raphael Turtle appearance](docs/media/design-raphael.png) |
-| [**Warm sand ranger**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/warm-sand-ranger-integrated-v2.skin) | [**Silver armor**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/mecha-tripo-v3.skin) | [**Raphael Turtle**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/skins/raphael-turtle-v1.skin) |
+## Quick start
 
-[Browse all skins](https://github.com/KingKongRobotics/jumper-design/tree/main/library/skins)
+### Requirements
 
-## One sentence to train a motion
+- Linux, Python 3.10–3.13.
+- An NVIDIA GPU is recommended. Training and replay use
+  [MuJoCo Warp](https://github.com/google-deepmind/mujoco_warp) through
+  `mjlab`; the `native` backend can run on CPU.
+- The repository's own setup guide is `docs/AGENT_SETUP.md`.
 
-> Train a stable tripod gait for Jumper, replay and evaluate the result, then package it as an `.app`.
+### Install
 
-| | | |
-|:-:|:-:|:-:|
-| ![Jumper walking](docs/media/walk.gif) | ![Jumper changing posture](docs/media/posture.gif) | ![Jumper waving](docs/media/gesture.gif) |
-| **Walk** | **Posture** | **Gesture** |
-| ![Dance simulation](docs/media/dance.gif)<br>![Dance website showcase](docs/media/official-dance.gif) | ![Jump simulation](docs/media/jump.gif)<br>![Jump website showcase](docs/media/official-jump.gif) | ![Grasp simulation](docs/media/claw.gif)<br>![Grasp website showcase](docs/media/official-grasp.gif) |
-| **Dance** | **Jump** | **Grasp** |
+```bash
+git clone https://github.com/littshar/jumper_RL.git
+cd jumper_RL
+python -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
 
-## One sentence to create a scene
+`pip install -e .` is required: the vendored `mjlab` and `rsl_rl` live under
+`rl/`, which is not on `sys.path` otherwise.
 
-> Create a park pump-track scene for Jumper with rolling terrain, trees and benches, then export a `.map`.
+### Replay a motion
 
-| | | |
-|:-:|:-:|:-:|
-| ![Park pump track scene](docs/media/design-park.png) | ![Bedroom scene](docs/media/design-bedroom.png) | ![Soccer scene](docs/media/design-soccer.png) |
-| [**Park pump track**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/park-pump-track.map) | [**Bedroom**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/bedroom.map) | [**Soccer**](https://github.com/KingKongRobotics/jumper-design/blob/be74e0f2e5e2433d24a3a7b1c1aa0dbeae480356/library/maps/soccer.map) |
+```bash
+# 你很臭啊 / You Stink!
+.venv/bin/python scripts/play.py --task jumper.dance_sway \
+    --checkpoint release/checkpoints/you_stink_model_17649.pt
 
-[Browse all maps](https://github.com/KingKongRobotics/jumper-design/tree/main/library/maps)
+# 奶龙捧腹大笑 / Nailong's Belly Laugh
+.venv/bin/python scripts/play.py --task jumper.dance_pitch \
+    --checkpoint release/checkpoints/nailong_belly_laugh_model_23648.pt
 
-## Where to find things
+# 小亮给他们整个活 / Xiaoliang Shows Them a Trick
+.venv/bin/python scripts/play.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt
+```
 
-| Resource | Purpose |
-|---|---|
-| [jumper-design](https://github.com/KingKongRobotics/jumper-design) | Appearance and scene creation; your assistant reads its [instructions](https://github.com/KingKongRobotics/jumper-design/blob/main/AGENTS.md) and uses its tools as needed. |
-| [Training tutorial](docs/TUTORIAL.md) | Motion training, replay and policy export in this repository. |
-| [Colab training](docs/COLAB.md) | GPU training in a notebook, checkpoint backup, resume, ONNX export and MP4 simulation replay. |
-| [Motion bundles](deploy/BUNDLE.md) | Package trained motions and their controller as an `.app`; see the [build guide](deploy/README.md) for prerequisites. |
-| [Project guide](docs/PROJECT_GUIDE.md) | Setup, current capabilities and further documentation. |
+No `--model` is passed, so the default `assets/jumper/jumper.xml` is used. If
+the Nailong skin is already installed (see below), that is what you see.
 
-Training builds on [mjlab](https://github.com/mujocolab/mjlab),
-[rsl_rl](https://github.com/leggedrobotics/rsl_rl), [MuJoCo](https://github.com/google-deepmind/mujoco)
-and [MuJoCo Warp](https://github.com/google-deepmind/mujoco_warp).
-Example appearance and scene images come from jumper-design; [image sources](docs/media/DESIGN_SOURCES.md)
-and [third-party notices](NOTICE) record attribution.
+To record a headless video instead of opening the viewer:
 
-## License
+```bash
+.venv/bin/python scripts/play.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt \
+    --headless --steps 650 --video backflip.mp4 --video-fps 50
+```
 
-Copyright 2026 KingKong Robotics.
+`--steps 650` covers one 3-second episode at the task's 200 Hz control rate.
+The backflip episode ends by itself at step 600, so `--stop-on-done` also works.
 
-Maintainer-owned project materials are licensed under Apache-2.0. See [LICENSE](LICENSE),
-[NOTICE](NOTICE), and [licensing details](docs/PROJECT_GUIDE.md#license).
-Third-party materials remain under their respective terms, and generated outputs do not
-automatically inherit this repository's license.
+## The Nailong skin
+
+The skin is appearance-only. Collision geometry and dynamics are unchanged, so
+the policies behave exactly as they did on the red training model.
+
+Files are in `release/nailong_skin/`:
+
+- `jumper.xml` — the complete model file, with the Nailong colours and the
+  textured upper shell wired in.
+- `upper_shell_link.obj`, `.mtl`, `_basecolor.png` — the textured shell mesh.
+- The XML still references `meshes/upper_shell_link_col.STL` for collision;
+  that file is already in the repository.
+
+Install it by replacing the model file and copying the shell into the visual
+mesh directory (back up the original first):
+
+```bash
+cp assets/jumper/jumper.xml assets/jumper/jumper.xml.orig
+cp release/nailong_skin/jumper.xml assets/jumper/jumper.xml
+cp release/nailong_skin/upper_shell_link.obj \
+   release/nailong_skin/upper_shell_link.mtl \
+   release/nailong_skin/upper_shell_link_basecolor.png \
+   assets/jumper/urdf/jumper/meshes/visual/
+```
+
+To replay on the red shell used for training instead, pass
+`--model jumper_red`.
+
+## Training (optional)
+
+The checkpoints are the result of continued training; these are the commands
+that reproduce the setup.
+
+```bash
+# 你很臭啊 — parametric sway dance, 2048 environments
+.venv/bin/python scripts/train.py --task jumper.dance_sway \
+    --num_envs 2048 --headless
+
+# 奶龙捧腹大笑 — warm-started from the sway dance, 2048 environments.
+# Use the newest sway checkpoint; train the sway dance first if logs/ is empty.
+SWAY=$(ls -t logs/jumper/jumper.dance_sway/*/model_*.pt | head -1)
+.venv/bin/python scripts/train.py --task jumper.dance_pitch \
+    --model jumper_red --checkpoint "$SWAY" --num_envs 2048 --headless
+
+# 小亮给他们整个活 — 512 environments on an 8 GB laptop GPU
+.venv/bin/python scripts/train.py --task jumper.backflip \
+    --model jumper_red \
+    --checkpoint tasks/jumper/ref_free_jump/out/example/model_5999.pt \
+    --num_envs 512 --headless
+```
+
+`--max-iterations` is the number of iterations **this run performs**, so on a
+resumed run it is how many more to do on top of the checkpoint.
+
+TensorBoard serves `logs/<model>/<task>/` during training at
+<http://localhost:6006/>.
+
+## Repository layout
+
+```
+release/checkpoints/       the three policy checkpoints
+release/nailong_skin/      Nailong appearance files
+release/SHA256SUMS         checksums for the files above
+tasks/jumper/dance_sway/   sway dance task
+tasks/jumper/dance_pitch/  pitch dance task
+tasks/jumper/backflip/     backflip task
+assets/jumper/             robot model, meshes and the red training model
+scripts/                   train.py, play.py, export.py, deploy.py
+docs/                      toolkit documentation
+```
+
+Everything else — `controller/`, `deploy/`, `scenes/`, the other tasks under
+`tasks/` — is part of the Jumper toolkit. See the
+[upstream project](https://github.com/KingKongRobotics/jumper) and `docs/` for
+that material.
+
+## Export and deployment
+
+The policy checkpoints are PyTorch full-state files. To produce an ONNX policy
+for deployment:
+
+```bash
+.venv/bin/python scripts/export.py --task jumper.backflip \
+    --checkpoint release/checkpoints/xiaoliang_big_move_model_9297.pt
+```
+
+See `deploy/README.md` for the controller and bundle workflow.
+
+## Known limitations
+
+- **Backflip landing.** The trained policy lands on about three of its six feet
+  on average and does not return to the HOME pose afterwards; the episode times
+  out three seconds after the jump starts. It is a reliable single backflip,
+  not a repeated acrobatic routine.
+- **Dances are parametric.** They are not motion-capture clips; the policy
+  tracks a periodic reference built into the task. They run for as long as the
+  policy is asked to.
+- **Simulation only.** The checkpoints are validated in `mjlab` / MuJoCo. Real
+  robot deployment needs the servo model, the controller manifest and the
+  hardware calibration described in `deploy/README.md`.
+
+## License and attribution
+
+The repository is licensed under the Apache License 2.0; see `LICENSE` and
+`NOTICE`. Jumper and the toolkit are Copyright 2026 KingKong Robotics.
+Third-party components and their licences are listed in `NOTICE`.
